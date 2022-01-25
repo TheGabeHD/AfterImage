@@ -10,18 +10,30 @@ using UnityEngine;
 /// Creates fading copies of the sprite displayed by the sprite renderer on this object.
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
-public class AfterImageLeanTween : MonoBehaviour
+public class AfterImageLeantween : MonoBehaviour
 {
-    [Tooltip("Time in seconds between each trail part.")]
-    [SerializeField] private float interval = 0.1f;
-    [SerializeField] private float lifeTime = 0.5f;
+    [Tooltip("Number of sprites per distance unit.")]
+    [SerializeField] private float rate = 2f;
+    [SerializeField] private float lifeTime = 0.2f;
 
     private SpriteRenderer baseRenderer;
+    private bool isActive = false;
+    private float interval;
+    private Vector3 previousPos;
 
     private void Start()
     {
         baseRenderer = GetComponent<SpriteRenderer>();
-        //Activate(true);
+        interval = 1f / rate;
+    }
+
+    private void Update()
+    {
+        if (isActive && Vector3.Distance(previousPos, transform.position) > interval)
+        {
+            SpawnTrailPart();
+            previousPos = transform.position;
+        }
     }
 
     /// <summary>
@@ -29,10 +41,9 @@ public class AfterImageLeanTween : MonoBehaviour
     /// </summary>
     public void Activate(bool shouldActivate)
     {
-        if (shouldActivate)
-            InvokeRepeating("SpawnTrailPart", 0, interval);
-        else
-            CancelInvoke("SpawnTrailPart");
+        isActive = shouldActivate;
+        if (isActive)
+            previousPos = transform.position;
     }
 
     private void SpawnTrailPart()
