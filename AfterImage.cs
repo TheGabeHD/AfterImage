@@ -45,6 +45,7 @@ public class AfterImage : MonoBehaviour
 
         // Transform
         trailPart.transform.position = transform.position;
+        trailPart.transform.rotation = transform.rotation;
         trailPart.transform.localScale = transform.localScale;
 
         // Sprite rotation
