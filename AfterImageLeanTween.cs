@@ -45,6 +45,7 @@ public class AfterImageLeanTween : MonoBehaviour
 
         // Transform
         trailPart.transform.position = transform.position;
+        trailPart.transform.rotation = transform.rotation;
         trailPart.transform.localScale = transform.lossyScale;
 
         // Sprite rotation
