@@ -63,17 +63,23 @@ public class AfterImage : MonoBehaviour
         //trailPart.AddComponent<CameraSpriteRotater>();
 
         // Fade & Destroy
-        LeanTween.value(trailPart, 1, 0, lifeTime)
-            .setOnUpdate((float value) =>
-            {
-                Color color = trailPartRenderer.color;
-                color.a = value;
-                trailPartRenderer.color = color;
-            })
-            .setOnComplete(() =>
-            {
-                Destroy(trailPartRenderer.gameObject);
-            });
+        StartCoroutine(FadeTrailPart(trailPartRenderer));
+    }
+
+    private IEnumerator FadeTrailPart(SpriteRenderer trailPartRenderer)
+    {
+        float fadeSpeed = 1 / lifeTime;
+
+        while(trailPartRenderer.color.a > 0)
+        {
+            Color color = trailPartRenderer.color;
+            color.a -= fadeSpeed * Time.deltaTime;
+            trailPartRenderer.color = color;
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        Destroy(trailPartRenderer.gameObject);
     }
 
     private static void CopySpriteRenderer(SpriteRenderer copy, SpriteRenderer original)
