@@ -12,16 +12,28 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class AfterImage : MonoBehaviour
 {
-    [Tooltip("Time in seconds between each trail part.")]
-    [SerializeField] private float interval = 0.1f;
-    [SerializeField] private float lifeTime = 0.5f;
+    [Tooltip("Number of sprites per distance unit.")]
+    [SerializeField] private float rate = 2f;
+    [SerializeField] private float lifeTime = 0.2f;
 
     private SpriteRenderer baseRenderer;
+    private bool isActive = false;
+    private float interval;
+    private Vector3 previousPos;
 
     private void Start()
     {
         baseRenderer = GetComponent<SpriteRenderer>();
-        //Activate(true);
+        interval = 1f / rate;
+    }
+
+    private void Update()
+    {
+        if (isActive && Vector3.Distance(previousPos, transform.position) > interval)
+        {
+            SpawnTrailPart();
+            previousPos = transform.position;
+        }
     }
 
     /// <summary>
@@ -29,10 +41,9 @@ public class AfterImage : MonoBehaviour
     /// </summary>
     public void Activate(bool shouldActivate)
     {
-        if (shouldActivate)
-            InvokeRepeating("SpawnTrailPart", 0, interval);
-        else
-            CancelInvoke("SpawnTrailPart");
+        isActive = shouldActivate;
+        if (isActive)
+            previousPos = transform.position;
     }
 
     private void SpawnTrailPart()
@@ -46,29 +57,23 @@ public class AfterImage : MonoBehaviour
         // Transform
         trailPart.transform.position = transform.position;
         trailPart.transform.rotation = transform.rotation;
-        trailPart.transform.localScale = transform.localScale;
+        trailPart.transform.localScale = transform.lossyScale;
 
         // Sprite rotation
         //trailPart.AddComponent<CameraSpriteRotater>();
 
         // Fade & Destroy
-        StartCoroutine(FadeTrailPart(trailPartRenderer));
-    }
-
-    private IEnumerator FadeTrailPart(SpriteRenderer trailPartRenderer)
-    {
-        float fadeSpeed = 1 / lifeTime;
-
-        while(trailPartRenderer.color.a > 0)
-        {
-            Color color = trailPartRenderer.color;
-            color.a -= fadeSpeed * Time.deltaTime;
-            trailPartRenderer.color = color;
-
-            yield return new WaitForEndOfFrame();
-        }
-
-        Destroy(trailPartRenderer.gameObject);
+        LeanTween.value(trailPart, 1, 0, lifeTime)
+            .setOnUpdate((float value) =>
+            {
+                Color color = trailPartRenderer.color;
+                color.a = value;
+                trailPartRenderer.color = color;
+            })
+            .setOnComplete(() =>
+            {
+                Destroy(trailPartRenderer.gameObject);
+            });
     }
 
     private static void CopySpriteRenderer(SpriteRenderer copy, SpriteRenderer original)
